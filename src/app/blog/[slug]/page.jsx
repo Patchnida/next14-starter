@@ -5,15 +5,30 @@ import { Suspense } from "react";
 import { getPost } from "@/lib/data";
 
 // FETCH DATA WITH AN API
-// const getData = async (slug) => {
-//   const res = await fetch(`https://jsonplaceholder.typicode.com/posts/${slug}`)
+const getData = async (slug) => {
+  const res = await fetch(`http://localhost:3000/api/blog/${slug}`)
 
-//   if(!res.ok) {
-//     throw new Error('Something went wrong')
-//   }
+  if(!res.ok) {
+    throw new Error('Something went wrong')
+  }
 
-//   return res.json()
-// }
+  return res.json()
+}
+
+export const generateMetadata = async ({params}) => {
+  const {slug} = params;
+
+  // FETCH DATA WITH AN API
+  const post = await getData(slug)
+
+  // FETCH DATA WITHOUT AN API
+  // const post = await getPost(slug)
+
+  return {
+    title:post.title,
+    description:post.desc
+  }
+}
 
 const SinglePostPage = async ({params}) => {
 
@@ -25,11 +40,17 @@ const SinglePostPage = async ({params}) => {
   // FETCH DATA WITHOUT AN API
   const post = await getPost(slug)
 
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('en-US', options);
+  };
+
+
   return (
     <div className={styles.container}>
       <div className={styles.imgContainer}>
         <Image 
-          src="https://images.pexels.com/photos/3413334/pexels-photo-3413334.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
+          src={post.img}
           alt="" 
           fill 
           className={styles.img} 
@@ -38,13 +59,7 @@ const SinglePostPage = async ({params}) => {
       <div className={styles.textContainer}>
         <h1 className={styles.title}>{post?.title}</h1>
         <div className={styles.detail}>
-          <Image 
-            src="https://images.pexels.com/photos/3413334/pexels-photo-3413334.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
-            alt="" 
-            className={styles.avatar} 
-            width={50}
-            height={50}
-          />
+          
           {post && 
             <Suspense fallback={
               <div>Loading...</div>
@@ -54,11 +69,11 @@ const SinglePostPage = async ({params}) => {
           
           <div className={styles.detailText}>
             <span className={styles.detailTitle}>Published</span>
-            <span className={styles.detailValue}>01.01.2024</span>
+            <span className={styles.detailValue}>{formatDate(post.createdAt)}</span>
           </div>
         </div>
         <div className={styles.content}>
-          {post.body}
+          {post.desc}
         </div>
       </div>
     </div>
